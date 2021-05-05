@@ -4,8 +4,9 @@
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
+import filters
 
-def conv(image, filt):
+def conv(image, filt, padding_shape=[1,1]):
     '''
     recibe imagen, filtro/kernel y el shape de padding deseado
     devuelve convolucion valida
@@ -14,8 +15,8 @@ def conv(image, filt):
     # default: no padding
     filter_row,filter_col = filt.shape
     image_row,image_col=image.shape
-    res_row = int((image_row- filter_row + 2*padding_shape[0])/S +1)
-    res_col = int((image_col- filter_col+ 2*padding_shape[1])/S +1)
+    res_row = int((image_row - filter_row + 2*padding_shape[0])/S +1)
+    res_col = int((image_col - filter_col+ 2*padding_shape[1])/S +1)
     # output shape formula source: 
     # https://stackoverflow.com/questions/53580088/calculate-the-output-size-in-convolution-layer
     res = np.zeros([res_row,res_col])
@@ -24,7 +25,6 @@ def conv(image, filt):
     pad_width = int((filter_col - 1) / 2)
 
     padded_image = np.zeros((image_row + (2 * pad_height), image_col + (2 * pad_width)))
-
     padded_image[pad_height:padded_image.shape[0] - pad_height, pad_width:padded_image.shape[1] - pad_width] = image
 
     for i in range(res_row):
@@ -34,17 +34,9 @@ def conv(image, filt):
 
 
 image = cv2.imread("noki.jpg",cv2.IMREAD_GRAYSCALE)
-
-gaussian_blur = np.array([
-    [0,0,0,5,0,0,0],
-    [0,5,18,32,18,5,0],
-    [0,18,64,100,64,18,0],
-    [5,32,100,100,100,32,5],
-    [0,18,64,100,64,18,0],
-    [0,5,18,32,18,5,0],
-    [0,0,0,5,0,0,0]])
-
-result = conv(image,gaussian_blur)
+filt = filters.gaussian_blur
+# print(filt)
+result = conv(image,filt)
 cv2.imshow('imagen original',image)
 cv2.waitKey(0)
 plt.imshow(result,cmap='gray')
