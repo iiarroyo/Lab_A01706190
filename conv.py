@@ -2,8 +2,10 @@
 # conv.py
 # segunda version, funcion que recibe tamaño de imagen variable
 import numpy as np
+import cv2
+import matplotlib.pyplot as plt
 
-def conv(image, filt, padding_shape = [0,0]):
+def conv(image, filt):
     '''
     recibe imagen, filtro/kernel y el shape de padding deseado
     devuelve convolucion valida
@@ -17,28 +19,34 @@ def conv(image, filt, padding_shape = [0,0]):
     # output shape formula source: 
     # https://stackoverflow.com/questions/53580088/calculate-the-output-size-in-convolution-layer
     res = np.zeros([res_row,res_col])
+
+    pad_height = int((filter_row - 1) / 2)
+    pad_width = int((filter_col - 1) / 2)
+
+    padded_image = np.zeros((image_row + (2 * pad_height), image_col + (2 * pad_width)))
+
+    padded_image[pad_height:padded_image.shape[0] - pad_height, pad_width:padded_image.shape[1] - pad_width] = image
+
     for i in range(res_row):
         for j in range(res_col):
-            res[i,j] = np.sum(image[i:i+filter_row,j:j+filter_col] * filt)
+            res[i,j] = np.sum(padded_image[i:i+filter_row,j:j+filter_col] * filt)
     return res
 
 
-# caso 1
-image1 = np.array([[1,2,3,4,5,6],[7,8,9,10,11,12],[0,0,1,16,17,18],[0,1,0,7,23,24],[1,7,6,5,4,3]])
-filt1 = np.array([[1,1,1],[0,0,0],[2,10,3]])
-answer1 = np.array([[9, 67,225,271],[ 34,50,169,349],[ 91,106,108,110]])
-res1 = conv(image1,filt1)
-print("Resultado 1:")
-print(res1)
-print("Deberia ser:")
-print(answer1)
+image = cv2.imread("noki.jpg",cv2.IMREAD_GRAYSCALE)
 
-#caso 2
-image2 = np.array([[10,4,50,30,20],[80,0,0,0,6],[0,0,1,16,17],[0,1,0,7,23],[1,0,6,0,4]])
-filt2 = np.array([[1,0,1],[0,0,0],[1,0,3]])
-answer2 = np.array([[63,82,122],[80,22,75],[20,16,36]])
-res2 = conv(image2,filt2)
-print("Resultado 2:")
-print(res2)
-print("Deberia ser:")
-print(answer2)
+gaussian_blur = np.array([
+    [0,0,0,5,0,0,0],
+    [0,5,18,32,18,5,0],
+    [0,18,64,100,64,18,0],
+    [5,32,100,100,100,32,5],
+    [0,18,64,100,64,18,0],
+    [0,5,18,32,18,5,0],
+    [0,0,0,5,0,0,0]])
+
+result = conv(image,gaussian_blur)
+cv2.imshow('imagen original',image)
+cv2.waitKey(0)
+plt.imshow(result,cmap='gray')
+plt.title("imagen blur")
+plt.show()
